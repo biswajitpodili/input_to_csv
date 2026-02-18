@@ -1,13 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const emptyParam = { name: '', unit: '', normalRange: '' };
 
-export default function TestForm({ onTestAdded }) {
+export default function TestForm({ onTestAdded, editingTest, onCancelEdit }) {
   const [testName, setTestName] = useState('');
   const [price, setPrice] = useState('');
   const [parameters, setParameters] = useState([{ ...emptyParam }]);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
+
+  // When editingTest changes, populate the form
+  useEffect(() => {
+    if (editingTest) {
+      const { data } = editingTest;
+      setTestName(data.name || '');
+      setPrice(data.price != null ? String(data.price) : '');
+      setParameters(
+        data.parameters && data.parameters.length > 0
+          ? data.parameters.map((p) => ({
+              name: p.name || '',
+              unit: p.unit || '',
+              normalRange: p.normalRange || '',
+            }))
+          : [{ ...emptyParam }]
+      );
+      setMessage(null);
+    }
+  }, [editingTest]);
 
   const addParameter = () => {
     setParameters([...parameters, { ...emptyParam }]);
@@ -25,29 +44,42 @@ export default function TestForm({ onTestAdded }) {
     setParameters(updated);
   };
 
+  const resetForm = () => {
+    setTestName('');
+    setPrice('');
+    setParameters([{ ...emptyParam }]);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     setSubmitting(true);
     setMessage(null);
 
     const payload = {
-      name: testName.trim(),
-      price: parseFloat(price),
+      name: testName.trim() || '',
+      price: price ? parseFloat(price) : 0,
       parameters: parameters.map((p) => ({
-        name: p.name.trim(),
-        unit: p.unit.trim(),
-        normalRange: p.normalRange.trim(),
+        name: p.name.trim() || '',
+        unit: p.unit.trim() || '',
+        normalRange: p.normalRange.trim() || '',
       })),
     };
 
     try {
-      // Save to localStorage
       const prev = JSON.parse(localStorage.getItem('tests') || '[]');
-      localStorage.setItem('tests', JSON.stringify([...prev, payload]));
-      setMessage({ type: 'success', text: 'Test added successfully!' });
-      setTestName('');
-      setPrice('');
-      setParameters([{ ...emptyParam }]);
+
+      if (editingTest != null && editingTest.index != null) {
+        // Update existing test
+        prev[editingTest.index] = payload;
+        localStorage.setItem('tests', JSON.stringify(prev));
+        setMessage({ type: 'success', text: 'Test updated successfully!' });
+      } else {
+        // Add new test
+        localStorage.setItem('tests', JSON.stringify([...prev, payload]));
+        setMessage({ type: 'success', text: 'Test added successfully!' });
+      }
+
+      resetForm();
       onTestAdded?.();
     } catch (err) {
       setMessage({ type: 'error', text: 'Failed to save test' });
@@ -56,9 +88,17 @@ export default function TestForm({ onTestAdded }) {
     }
   };
 
+  const handleCancel = () => {
+    resetForm();
+    setMessage(null);
+    onCancelEdit?.();
+  };
+
+  const isEditing = editingTest != null;
+
   return (
     <div className="form-container">
-      <h2>Add New Test</h2>
+      <h2>{isEditing ? '✏️ Edit Test' : 'Add New Test'}</h2>
       {message && (
         <div className={`message ${message.type}`}>{message.text}</div>
       )}
@@ -114,14 +154,12 @@ export default function TestForm({ onTestAdded }) {
                 value={param.unit}
                 onChange={(e) => updateParameter(index, 'unit', e.target.value)}
                 placeholder="Unit (e.g. g/dL)"
-                required
               />
               <input
                 type="text"
                 value={param.normalRange}
                 onChange={(e) => updateParameter(index, 'normalRange', e.target.value)}
                 placeholder="Range (e.g. 13.8-17.2)"
-                required
               />
               <button
                 type="button"
@@ -139,9 +177,16 @@ export default function TestForm({ onTestAdded }) {
           ))}
         </div>
 
-        <button type="submit" className="btn-submit" disabled={submitting}>
-          {submitting ? 'Submitting...' : 'Submit Test'}
-        </button>
+        <div className="form-actions">
+          <button type="submit" className="btn-submit" disabled={submitting}>
+            {submitting ? 'Saving...' : isEditing ? 'Update Test' : 'Submit Test'}
+          </button>
+          {isEditing && (
+            <button type="button" className="btn-cancel" onClick={handleCancel}>
+              Cancel
+            </button>
+          )}
+        </div>
       </form>
     </div>
   );

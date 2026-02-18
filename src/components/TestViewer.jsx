@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 
-export default function TestViewer({ refreshKey }) {
+export default function TestViewer({ refreshKey, onEdit }) {
   const [tests, setTests] = useState([]);
   const [expandedIndex, setExpandedIndex] = useState(null);
 
@@ -16,7 +16,8 @@ export default function TestViewer({ refreshKey }) {
     const data = JSON.parse(localStorage.getItem('tests') || '[]');
     data.splice(index, 1);
     localStorage.setItem('tests', JSON.stringify(data));
-    setTests(data);
+    setTests([...data]);
+    if (expandedIndex === index) setExpandedIndex(null);
   };
 
   const toggleExpand = (index) => {
@@ -27,9 +28,9 @@ export default function TestViewer({ refreshKey }) {
     let csv = 'name,amount,parameters\n';
     for (const test of tests) {
       const params = test.parameters.map((p) => ({
-        Name: p.name,
-        unit: p.unit,
-        range: p.normalRange,
+        Name: p.name || '',
+        unit: p.unit || '',
+        range: p.normalRange || '',
       }));
       const paramsJson = JSON.stringify(params).replace(/"/g, '""');
       csv += `"${test.name}",${test.price},"${paramsJson}"\n`;
@@ -71,6 +72,16 @@ export default function TestViewer({ refreshKey }) {
                 <div className="test-card-actions">
                   <span className="param-count">{test.parameters.length} params</span>
                   <button
+                    className="btn-icon btn-edit"
+                    onClick={(e) => { e.stopPropagation(); onEdit?.(index); }}
+                    title="Edit test"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                      <path d="M13.5 2.5l2 2-9 9H4.5v-2l9-9z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M11.5 4.5l2 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                  <button
                     className="btn-icon btn-delete"
                     onClick={(e) => { e.stopPropagation(); handleDelete(index); }}
                     title="Delete test"
@@ -98,9 +109,9 @@ export default function TestViewer({ refreshKey }) {
                       {test.parameters.map((param, pIdx) => (
                         <tr key={pIdx}>
                           <td>{pIdx + 1}</td>
-                          <td>{param.name}</td>
-                          <td><code>{param.unit}</code></td>
-                          <td><span className="range-badge">{param.normalRange}</span></td>
+                          <td>{param.name || <span className="empty-field">—</span>}</td>
+                          <td><code>{param.unit || <span className="empty-field">—</span>}</code></td>
+                          <td><span className="range-badge">{param.normalRange || <span className="empty-field">—</span>}</span></td>
                         </tr>
                       ))}
                     </tbody>

@@ -26,9 +26,20 @@ body {
 
 /* ========== App Layout ========== */
 .app {
-  max-width: 900px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 2rem 1.5rem 4rem;
+}
+
+.main-row {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.main-row > * {
+  flex: 1;
+  min-width: 0;
 }
 
 .app-header {
@@ -55,7 +66,6 @@ body {
   border-radius: var(--radius);
   padding: 2rem;
   box-shadow: var(--shadow);
-  margin-bottom: 2.5rem;
 }
 
 .form-container h2 {
@@ -184,10 +194,48 @@ body {
   background: rgba(220,38,38,.1);
 }
 
+.btn-edit {
+  color: var(--primary);
+}
+
+.btn-edit:hover {
+  background: rgba(79,70,229,.1);
+}
+
+/* ========== Form Actions ========== */
+.form-actions {
+  display: flex;
+  gap: .75rem;
+  margin-top: 1.5rem;
+}
+
+.btn-cancel {
+  flex: 0 0 auto;
+  padding: .75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.btn-cancel:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: rgba(220,38,38,.04);
+}
+
+.empty-field {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 /* ========== Submit Button ========== */
 .btn-submit {
-  margin-top: 1.5rem;
-  width: 100%;
+  flex: 1;
   padding: .75rem;
   font-size: 1rem;
   font-weight: 600;
@@ -416,6 +464,12 @@ body {
 }
 
 /* ========== Responsive ========== */
+@media (max-width: 900px) {
+  .main-row {
+    flex-direction: column;
+  }
+}
+
 @media (max-width: 640px) {
   .app { padding: 1rem; }
   .form-container, .viewer-container { padding: 1.25rem; }
