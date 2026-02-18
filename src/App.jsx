@@ -27,7 +27,9 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Tekkzy - Lab Test Manager</h1>
+
+        <h1 style={{ color: 'black' }} className='font-extrabold'>Tekkzy - Lab Test Manager</h1>
+
         <p>Add medical tests with parameters and store them as CSV</p>
       </header>
       <main className="main-row">
