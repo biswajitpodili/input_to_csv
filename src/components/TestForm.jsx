@@ -25,7 +25,7 @@ export default function TestForm({ onTestAdded }) {
     setParameters(updated);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setSubmitting(true);
     setMessage(null);
@@ -41,24 +41,16 @@ export default function TestForm({ onTestAdded }) {
     };
 
     try {
-      const res = await fetch('/api/tests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        setMessage({ type: 'success', text: 'Test added successfully!' });
-        setTestName('');
-        setPrice('');
-        setParameters([{ ...emptyParam }]);
-        onTestAdded?.();
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Failed to add test' });
-      }
+      // Save to localStorage
+      const prev = JSON.parse(localStorage.getItem('tests') || '[]');
+      localStorage.setItem('tests', JSON.stringify([...prev, payload]));
+      setMessage({ type: 'success', text: 'Test added successfully!' });
+      setTestName('');
+      setPrice('');
+      setParameters([{ ...emptyParam }]);
+      onTestAdded?.();
     } catch (err) {
-      setMessage({ type: 'error', text: 'Network error: ' + err.message });
+      setMessage({ type: 'error', text: 'Failed to save test' });
     } finally {
       setSubmitting(false);
     }

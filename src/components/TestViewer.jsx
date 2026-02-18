@@ -1,36 +1,22 @@
+
 import { useEffect, useState } from 'react';
 
 export default function TestViewer({ refreshKey }) {
   const [tests, setTests] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [expandedIndex, setExpandedIndex] = useState(null);
 
-  const fetchTests = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/tests');
-      const data = await res.json();
-      setTests(data);
-    } catch (err) {
-      console.error('Failed to load tests:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Load from localStorage
   useEffect(() => {
-    fetchTests();
+    const data = JSON.parse(localStorage.getItem('tests') || '[]');
+    setTests(data);
   }, [refreshKey]);
 
-  const handleDelete = async (index) => {
+  const handleDelete = (index) => {
     if (!confirm('Are you sure you want to delete this test?')) return;
-    try {
-      const res = await fetch(`/api/tests/${index}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success) fetchTests();
-    } catch (err) {
-      console.error('Delete failed:', err);
-    }
+    const data = JSON.parse(localStorage.getItem('tests') || '[]');
+    data.splice(index, 1);
+    localStorage.setItem('tests', JSON.stringify(data));
+    setTests(data);
   };
 
   const toggleExpand = (index) => {
@@ -38,7 +24,6 @@ export default function TestViewer({ refreshKey }) {
   };
 
   const handleDownload = () => {
-    // Build a clean CSV with one row per parameter
     let csv = 'Test Name,Price,Parameter,Unit,Normal Range\n';
     for (const test of tests) {
       for (const p of test.parameters) {
@@ -59,8 +44,6 @@ export default function TestViewer({ refreshKey }) {
     a.click();
     URL.revokeObjectURL(url);
   };
-
-  if (loading) return <div className="viewer-container"><p className="loading">Loading tests...</p></div>;
 
   return (
     <div className="viewer-container">
