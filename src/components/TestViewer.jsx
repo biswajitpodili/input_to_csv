@@ -24,17 +24,15 @@ export default function TestViewer({ refreshKey }) {
   };
 
   const handleDownload = () => {
-    let csv = 'Test Name,Price,Parameter,Unit,Normal Range\n';
+    let csv = 'name,amount,parameters\n';
     for (const test of tests) {
-      for (const p of test.parameters) {
-        csv += [
-          `"${test.name}"`,
-          test.price,
-          `"${p.name}"`,
-          `"${p.unit}"`,
-          `"${p.normalRange}"`
-        ].join(',') + '\n';
-      }
+      const params = test.parameters.map((p) => ({
+        Name: p.name,
+        unit: p.unit,
+        range: p.normalRange,
+      }));
+      const paramsJson = JSON.stringify(params).replace(/"/g, '""');
+      csv += `"${test.name}",${test.price},"${paramsJson}"\n`;
     }
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
